@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+.env
+.runtime/
+# Legacy generated paths
+data/
+mlruns/
+benchmark/reports/
+*.db
+
+tests/runtime/
+.uv-cache/
+.cache/
+.tmp/
+.smoke*/
+tmp*/
+pytest-cache-files-*/

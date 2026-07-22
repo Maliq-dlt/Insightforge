@@ -1,0 +1,20 @@
+[
+  {
+    "id": "retail_total_revenue",
+    "dataset": "retail_small.csv",
+    "question": "Berapa total revenue?",
+    "expected": {"value": 700.0, "tolerance": 0.000001},
+    "field": "metric_value",
+    "category": "basic_aggregation",
+    "difficulty": "easy"
+  },
+  {
+    "id": "retail_top_category",
+    "dataset": "retail_small.csv",
+    "question": "Kategori mana paling tinggi berdasarkan revenue?",
+    "expected": {"value": 450.0, "tolerance": 0.000001},
+    "field": "metric_value",
+    "category": "filtering_segmentation",
+    "difficulty": "easy"
+  }
+]

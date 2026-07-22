@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    image: insightforge:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - insightforge-data:/app/.runtime
+    mem_limit: 1g
+    cpus: 1.0
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  insightforge-data:

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>InsightForge</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    body { margin: 0; background: #10141b; color: #e8edf4; }
+    main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+    h1 { margin-bottom: 4px; } .muted { color: #93a1b5; }
+    section { background: #171e28; border: 1px solid #2b3747; border-radius: 12px; padding: 20px; margin-top: 20px; }
+    input, select, button { border: 1px solid #3a4a5f; border-radius: 8px; padding: 10px; background: #0e131a; color: inherit; }
+    input, select { width: 100%; box-sizing: border-box; margin: 6px 0 12px; }
+    button { cursor: pointer; background: #2d7ff9; border-color: #2d7ff9; font-weight: 700; }
+    button:disabled { opacity: .5; cursor: wait; }
+    pre { overflow: auto; background: #0c1016; border-radius: 8px; padding: 12px; }
+    table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 8px; border-bottom: 1px solid #2b3747; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .error { color: #ff8b8b; white-space: pre-wrap; } .answer { white-space: pre-wrap; } .success { color: #7ee2a8; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>InsightForge</h1>
+  <div class="muted">Auditable, evidence-backed data analysis</div>
+  <section>
+    <h2>0. Authentication</h2>
+    <div class="grid">
+      <div><label for="username">Username</label><input id="username" autocomplete="username"></div>
+      <div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password"></div>
+    </div>
+    <button id="login">Login</button>
+    <button id="logout" type="button">Logout</button>
+    <div id="auth-status" class="muted"></div>
+  </section>
+  <section>
+    <h2>1. Upload dataset</h2>
+    <input id="file" type="file" accept=".csv,.parquet">
+    <button id="upload">Upload & profile</button>
+    <div id="upload-status" class="muted"></div>
+  </section>
+  <section>
+    <h2>2. Ask question</h2>
+    <label>Dataset</label><select id="dataset"></select>
+    <label>Question</label><input id="question" value="Berapa total revenue?"><br>
+    <label>Mode</label><select id="mode"><option value="approval">Approval</option><option value="autonomous">Autonomous</option></select>
+    <button id="analyze">Create analysis</button>
+    <div id="analysis-status" class="muted"></div>
+  </section>
+  <section id="result" hidden>
+    <h2>Result</h2><div id="answer"></div><h3>Plan</h3><pre id="plan"></pre><h3>Evidence</h3><div id="evidence"></div><h3>Trace</h3><pre id="trace"></pre>
+  </section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const showError = (id, error) => { $(id).className = 'error'; $(id).textContent = error; };
+const setStatus = (id, text, className = 'muted') => { $(id).className = className; $(id).textContent = text; };
+let authToken = localStorage.getItem('insightforge_token') || '';
+const setAuthToken = token => {
+  authToken = token;
+  if (token) localStorage.setItem('insightforge_token', token);
+  else localStorage.removeItem('insightforge_token');
+};
+const apiFetch = (url, options = {}) => {
+  const headers = new Headers(options.headers || {});
+  if (authToken) headers.set('Authorization', `Bearer ${authToken}`);
+  return fetch(url, {...options, headers});
+};
+$('login').onclick = async () => {
+  try {
+    const response = await fetch('/api/v1/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username: $('username').value, password: $('password').value}),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Login gagal');
+    setAuthToken(data.access_token);
+    setStatus('auth-status', `Login: ${data.user.username} (${data.user.role})`, 'success');
+    await loadDatasets();
+  } catch (error) { showError('auth-status', error.message); }
+};
+$('logout').onclick = async () => {
+  if (authToken) await apiFetch('/api/v1/auth/logout', {method: 'POST'});
+  setAuthToken('');
+  setStatus('auth-status', 'Token dihapus.');
+};
+async function loadDatasets() {
+  const response = await apiFetch('/api/v1/datasets');
+  const datasets = await response.json();
+  if (!response.ok) throw new Error(datasets.detail || 'Dataset gagal dimuat');
+  const select = $('dataset'); select.replaceChildren();
+  datasets.forEach(dataset => { const option = document.createElement('option'); option.value = dataset.id; option.textContent = `${dataset.name} (${dataset.profile.rows} rows)`; select.append(option); });
+}
+$('upload').onclick = async () => {
+  const file = $('file').files[0]; if (!file) return showError('upload-status', 'Pilih file.');
+  const form = new FormData(); form.append('file', file); $('upload').disabled = true;
+  try { const response = await apiFetch('/api/v1/datasets', {method: 'POST', body: form}); const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Upload gagal'); setStatus('upload-status', `Ready: ${data.id}`, 'success'); await loadDatasets();
+  } catch (error) { showError('upload-status', error.message); } finally { $('upload').disabled = false; }
+};
+$('analyze').onclick = async () => {
+  const payload = {dataset_id: $('dataset').value, question: $('question').value, mode: $('mode').value}; $('analyze').disabled = true;
+  try { const response = await apiFetch('/api/v1/analyses', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || 'Analysis gagal'); $('result').hidden = false; $('plan').textContent = JSON.stringify(data.plan, null, 2);
+    if (data.status === 'awaiting_approval') { const button = document.createElement('button'); button.textContent = 'Approve and run'; button.onclick = () => approve(data.id); $('analysis-status').replaceChildren(button); }
+    else await renderResult(data);
+  } catch (error) { showError('analysis-status', error.message); } finally { $('analyze').disabled = false; }
+};
+window.approve = async id => { const response = await apiFetch(`/api/v1/analyses/${id}/approve`, {method:'POST'}); const data = await response.json(); if (!response.ok) return showError('analysis-status', data.detail); await renderResult(data); };
+async function renderResult(data) {
+  setStatus('analysis-status', data.status, data.status === 'completed' ? 'success' : 'error');
+  $('answer').textContent = data.final_answer || data.error || '';
+  $('plan').textContent = JSON.stringify(data.plan, null, 2);
+  const evidence = data.result?.evidence || []; const evidenceBox = $('evidence'); evidenceBox.replaceChildren();
+  evidence.forEach(item => { const heading = document.createElement('h4'); heading.textContent = item.key; const pre = document.createElement('pre'); pre.textContent = JSON.stringify(item.rows, null, 2); evidenceBox.append(heading, pre); });
+  const trace = await (await apiFetch(`/api/v1/analyses/${data.id}/trace`)).json(); $('trace').textContent = JSON.stringify(trace, null, 2);
+}
+setStatus('auth-status', authToken ? 'Bearer token tersimpan.' : 'Login hanya diperlukan saat AUTH_ENABLED=true.');
+loadDatasets().catch(error => showError('analysis-status', error.message));
+</script>
+</body>
+</html>
+
