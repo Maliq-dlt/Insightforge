@@ -14,6 +14,8 @@ Use `.runtime/cache/uv/` for dependency cache and `.runtime/` for generated runt
 uv run pytest
 uv run ruff check apps insightforge tests
 uv run mypy insightforge apps
+uv run coverage run -m pytest
+uv run coverage report
 ```
 
 The test suite stores generated databases and datasets under `.runtime/tests/`, which is ignored by Git. Docker sandbox execution additionally requires Docker CLI and daemon access.

@@ -1,0 +1,17 @@
+group,outcome,x,y,channel,converted
+A,10,1,2.1,Online,Yes
+A,11,2,3.9,Online,Yes
+A,9,3,6.2,Online,Yes
+A,10,4,7.8,Online,Yes
+A,12,5,10.1,Online,Yes
+A,11,6,12.2,Online,Yes
+A,10,7,13.8,Online,Yes
+A,9,8,16.1,Online,Yes
+B,20,9,18.2,Store,No
+B,21,10,19.9,Store,No
+B,19,11,22.1,Store,No
+B,22,12,24.0,Store,No
+B,20,13,26.2,Store,No
+B,23,14,27.9,Store,No
+B,21,15,30.1,Store,No
+B,19,16,31.8,Store,No

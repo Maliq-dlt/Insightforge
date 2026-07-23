@@ -1,0 +1,11 @@
+id,city,notes,customer_score,revenue
+1,Bandung,good,4.5,100
+2,Bandung,,4.2,120
+3,Jakarta,,4.0,130
+4,Jakarta,,,140
+5,Surabaya,late,3.9,90
+6,Surabaya,,4.1,95
+7,,,4.3,80
+8,Bandung,repeat,,110
+9,Jakarta,,4.4,125
+10,Surabaya,ok,4.0,105

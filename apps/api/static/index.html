@@ -3,123 +3,287 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>InsightForge</title>
+  <meta name="description" content="InsightForge auditable data scientist workspace">
+  <title>InsightForge · Auditable analysis workspace</title>
   <style>
-    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
-    body { margin: 0; background: #10141b; color: #e8edf4; }
-    main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
-    h1 { margin-bottom: 4px; } .muted { color: #93a1b5; }
-    section { background: #171e28; border: 1px solid #2b3747; border-radius: 12px; padding: 20px; margin-top: 20px; }
-    input, select, button { border: 1px solid #3a4a5f; border-radius: 8px; padding: 10px; background: #0e131a; color: inherit; }
-    input, select { width: 100%; box-sizing: border-box; margin: 6px 0 12px; }
-    button { cursor: pointer; background: #2d7ff9; border-color: #2d7ff9; font-weight: 700; }
-    button:disabled { opacity: .5; cursor: wait; }
-    pre { overflow: auto; background: #0c1016; border-radius: 8px; padding: 12px; }
-    table { width: 100%; border-collapse: collapse; } th, td { text-align: left; padding: 8px; border-bottom: 1px solid #2b3747; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-    .error { color: #ff8b8b; white-space: pre-wrap; } .answer { white-space: pre-wrap; } .success { color: #7ee2a8; }
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #07100f;
+      --panel: #0d1a18;
+      --panel-2: #112321;
+      --line: #24413d;
+      --text: #eef8f5;
+      --muted: #91aaa5;
+      --accent: #70e1b7;
+      --accent-strong: #19b87e;
+      --warning: #f4c96b;
+      --danger: #ff8c8c;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 88% 8%, rgba(25, 184, 126, .18), transparent 24rem),
+        linear-gradient(180deg, #081411 0%, var(--bg) 45%, #050b0a 100%);
+      color: var(--text);
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .55; }
+    .shell { width: min(1440px, 100%); margin: 0 auto; padding: 28px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 26px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--accent); color: #062218; font-weight: 900; box-shadow: 0 0 0 7px rgba(112, 225, 183, .08); }
+    .brand h1 { margin: 0; font-size: 1.1rem; letter-spacing: -.02em; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: .82rem; }
+    .badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .badge, .eyebrow { border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; color: var(--muted); font-size: .75rem; }
+    .badge.live { border-color: rgba(112, 225, 183, .45); color: var(--accent); background: rgba(112, 225, 183, .07); }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .7fr); gap: 18px; margin-bottom: 20px; }
+    .hero-copy, .proof-card, .panel { border: 1px solid var(--line); background: rgba(13, 26, 24, .88); box-shadow: var(--shadow); }
+    .hero-copy { border-radius: 24px; padding: clamp(28px, 5vw, 58px); overflow: hidden; position: relative; }
+    .hero-copy::after { content: ""; position: absolute; width: 260px; height: 260px; border-radius: 50%; right: -130px; bottom: -150px; border: 50px solid rgba(112, 225, 183, .08); }
+    .hero h2 { max-width: 820px; margin: 18px 0 16px; font-size: clamp(2rem, 5vw, 4.7rem); line-height: .98; letter-spacing: -.065em; }
+    .hero-copy p { max-width: 720px; margin: 0; color: #b8cbc7; font-size: 1rem; line-height: 1.75; }
+    .proof-card { border-radius: 24px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; }
+    .proof-card h3 { margin: 0 0 18px; font-size: .85rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+    .proof-list { display: grid; gap: 14px; }
+    .proof { display: flex; gap: 11px; align-items: flex-start; }
+    .proof strong { display: block; font-size: .92rem; }
+    .proof span { display: block; margin-top: 3px; color: var(--muted); font-size: .78rem; line-height: 1.45; }
+    .check { color: var(--accent); font-weight: 900; }
+    .workspace { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px; align-items: start; }
+    .sidebar { display: grid; gap: 16px; position: sticky; top: 18px; }
+    .panel { border-radius: 18px; padding: 20px; }
+    .panel h2, .panel h3 { margin: 0; letter-spacing: -.025em; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .step { color: var(--accent); font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    label { display: block; margin: 12px 0 6px; color: #c7d8d4; font-size: .78rem; font-weight: 700; }
+    input, select { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #081310; color: var(--text); padding: 11px 12px; outline: none; }
+    input:focus, select:focus { border-color: var(--accent-strong); box-shadow: 0 0 0 3px rgba(25, 184, 126, .14); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .button { display: inline-block; text-decoration: none; border: 1px solid var(--accent-strong); border-radius: 10px; background: var(--accent); color: #062218; padding: 10px 14px; font-weight: 850; }
+    .button.secondary { border-color: var(--line); background: transparent; color: var(--text); }
+    .button.small { padding: 7px 10px; font-size: .76rem; }
+    .status { min-height: 20px; margin-top: 10px; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+    .status.success { color: var(--accent); }
+    .status.error { color: var(--danger); white-space: pre-wrap; }
+    .main { display: grid; gap: 16px; min-width: 0; }
+    .empty { min-height: 310px; display: grid; place-items: center; text-align: center; color: var(--muted); }
+    .empty strong { display: block; color: var(--text); font-size: 1.15rem; margin-bottom: 6px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .metric { border: 1px solid var(--line); border-radius: 14px; background: #091512; padding: 14px; }
+    .metric span { display: block; color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
+    .metric strong { display: block; margin-top: 6px; font-size: 1.35rem; letter-spacing: -.04em; }
+    .split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr); gap: 16px; }
+    .answer { margin: 0; white-space: pre-wrap; color: #d8e7e3; line-height: 1.68; font-family: inherit; }
+    .chart { min-height: 280px; border: 1px solid var(--line); border-radius: 14px; background: #07110f; padding: 12px; }
+    .chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .chart-empty { height: 250px; display: grid; place-items: center; color: var(--muted); }
+    .card-list { display: grid; gap: 12px; }
+    .evidence-card, .trace-step { border: 1px solid var(--line); border-radius: 14px; background: #091512; padding: 15px; }
+    .card-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .card-title p { margin: 5px 0 0; color: var(--muted); font-size: .78rem; }
+    .key { color: var(--accent); font: 700 .72rem ui-monospace, SFMono-Regular, Consolas, monospace; }
+    details { margin: 11px 0; }
+    summary { cursor: pointer; color: var(--muted); font-size: .78rem; }
+    pre { max-width: 100%; overflow: auto; margin: 8px 0 0; border-radius: 10px; background: #050b0a; padding: 12px; color: #b9d5ce; font: .74rem/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .table-wrap { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .76rem; }
+    th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid rgba(36, 65, 61, .72); white-space: nowrap; }
+    th { color: var(--muted); font-weight: 700; }
+    td { color: #d8e7e3; }
+    .warnings { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .warning { border: 1px solid rgba(244, 201, 107, .35); border-radius: 999px; padding: 6px 9px; color: var(--warning); background: rgba(244, 201, 107, .06); font-size: .72rem; }
+    .timeline { position: relative; display: grid; gap: 10px; }
+    .trace-step { margin-left: 18px; position: relative; }
+    .trace-step::before { content: ""; position: absolute; left: -25px; top: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 5px rgba(112, 225, 183, .08); }
+    .trace-step::after { content: ""; position: absolute; left: -21px; top: 31px; bottom: -25px; width: 1px; background: var(--line); }
+    .trace-step:last-child::after { display: none; }
+    .trace-meta { color: var(--muted); font-size: .72rem; }
+    .benchmark-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .benchmark-grid .metric strong { font-size: 1.05rem; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1000px) {
+      .hero, .workspace, .split { grid-template-columns: 1fr; }
+      .sidebar { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 680px) {
+      .shell { padding: 16px; }
+      .topbar { align-items: flex-start; }
+      .badges { display: none; }
+      .sidebar { grid-template-columns: 1fr; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero-copy, .proof-card, .panel { border-radius: 16px; }
+    }
   </style>
 </head>
 <body>
-<main>
-  <h1>InsightForge</h1>
-  <div class="muted">Auditable, evidence-backed data analysis</div>
-  <section>
-    <h2>0. Authentication</h2>
-    <div class="grid">
-      <div><label for="username">Username</label><input id="username" autocomplete="username"></div>
-      <div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password"></div>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">IF</div>
+        <div><h1>InsightForge</h1><p>Auditable data scientist agent</p></div>
+      </div>
+      <div class="badges" aria-label="System capabilities">
+        <span class="badge live">Read-only SQL</span><span class="badge">Evidence linked</span><span class="badge">Approval mode</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">REPRODUCIBLE ANALYSIS · FULL EXECUTION TRACE</span>
+        <h2>From raw dataset to defensible finding.</h2>
+        <p>Upload CSV or Parquet, inspect profile, approve deterministic plan, then review executed SQL, evidence, visualization, validation, and trace in one workspace.</p>
+      </div>
+      <aside class="proof-card">
+        <div>
+          <h3>Trust boundaries</h3>
+          <div class="proof-list">
+            <div class="proof"><span class="check">✓</span><div><strong>Claims cite evidence</strong><span>Answer points back to executed query results.</span></div></div>
+            <div class="proof"><span class="check">✓</span><div><strong>SQL stays read-only</strong><span>Mutation, external scan, and multi-statement blocked.</span></div></div>
+            <div class="proof"><span class="check">✓</span><div><strong>Humans can approve</strong><span>Plan visible before execution in approval mode.</span></div></div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <section class="panel">
+          <div class="panel-heading"><div><div class="step">Access</div><h2>Authentication</h2></div></div>
+          <label for="username">Username</label><input id="username" autocomplete="username">
+          <label for="password">Password</label><input id="password" type="password" autocomplete="current-password">
+          <div class="actions"><button class="button small" id="login">Login</button><button class="button secondary small" id="logout" type="button">Logout</button></div>
+          <div id="auth-status" class="status" aria-live="polite"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><div class="step">Step 01</div><h2>Dataset</h2></div></div>
+          <label for="file">CSV or Parquet</label><input id="file" type="file" accept=".csv,.parquet">
+          <button class="button" id="upload">Upload & profile</button>
+          <div id="upload-status" class="status" aria-live="polite"></div>
+          <label for="dataset">Available dataset</label><select id="dataset"></select>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><div class="step">Step 02</div><h2>Analysis</h2></div></div>
+          <label for="question">Question</label><input id="question" value="Mengapa revenue Bandung turun pada April?">
+          <label for="mode">Execution mode</label><select id="mode"><option value="approval">Approval</option><option value="autonomous">Autonomous</option></select>
+          <button class="button" id="analyze">Create analysis</button>
+          <div id="analysis-status" class="status" aria-live="polite"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading"><div><div class="step">Proof</div><h2>Benchmark</h2></div><button class="button secondary small" id="run-benchmark">Run</button></div>
+          <div id="benchmark" class="status">No report loaded.</div>
+        </section>
+      </aside>
+
+      <main class="main">
+        <section class="panel" id="profile-panel">
+          <div class="panel-heading"><div><div class="step">Dataset profile</div><h2 id="profile-title">Select dataset</h2></div></div>
+          <div id="profile-content" class="empty"><div><strong>Profile appears here</strong>Upload or select dataset to inspect schema and quality signals.</div></div>
+        </section>
+
+        <section class="panel" id="plan-panel" hidden>
+          <div class="panel-heading"><div><div class="step">Execution contract</div><h2>Analysis plan</h2></div></div>
+          <pre id="plan"></pre>
+        </section>
+
+        <section class="panel" id="result" hidden>
+          <div class="panel-heading"><div><div class="step">Evidence-backed output</div><h2>Finding</h2></div><div class="actions"><a class="button secondary small" id="download-report" hidden>Download HTML</a><span id="result-status" class="badge"></span></div></div>
+          <div class="metric-grid" id="result-metrics"></div>
+          <div class="split" style="margin-top:16px">
+            <div class="evidence-card"><pre class="answer" id="answer"></pre></div>
+            <div class="chart" id="chart"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="evidence-panel" hidden>
+          <div class="panel-heading"><div><div class="step">Executed proof</div><h2>Evidence & SQL</h2></div></div>
+          <div id="evidence" class="card-list"></div>
+        </section>
+
+        <section class="panel" id="trace-panel" hidden>
+          <div class="panel-heading"><div><div class="step">Audit trail</div><h2>Execution trace</h2></div></div>
+          <div id="trace" class="timeline"></div>
+        </section>
+      </main>
     </div>
-    <button id="login">Login</button>
-    <button id="logout" type="button">Logout</button>
-    <div id="auth-status" class="muted"></div>
-  </section>
-  <section>
-    <h2>1. Upload dataset</h2>
-    <input id="file" type="file" accept=".csv,.parquet">
-    <button id="upload">Upload & profile</button>
-    <div id="upload-status" class="muted"></div>
-  </section>
-  <section>
-    <h2>2. Ask question</h2>
-    <label>Dataset</label><select id="dataset"></select>
-    <label>Question</label><input id="question" value="Berapa total revenue?"><br>
-    <label>Mode</label><select id="mode"><option value="approval">Approval</option><option value="autonomous">Autonomous</option></select>
-    <button id="analyze">Create analysis</button>
-    <div id="analysis-status" class="muted"></div>
-  </section>
-  <section id="result" hidden>
-    <h2>Result</h2><div id="answer"></div><h3>Plan</h3><pre id="plan"></pre><h3>Evidence</h3><div id="evidence"></div><h3>Trace</h3><pre id="trace"></pre>
-  </section>
-</main>
+  </div>
+
 <script>
 const $ = id => document.getElementById(id);
-const showError = (id, error) => { $(id).className = 'error'; $(id).textContent = error; };
-const setStatus = (id, text, className = 'muted') => { $(id).className = className; $(id).textContent = text; };
+const setStatus = (id, text, className = 'status') => { $(id).className = className; $(id).textContent = text; };
+const formatNumber = value => typeof value === 'number' ? new Intl.NumberFormat('en-US', {maximumFractionDigits: 2}).format(value) : String(value ?? '—');
+const formatPercent = value => `${(Number(value || 0) * 100).toFixed(0)}%`;
 let authToken = localStorage.getItem('insightforge_token') || '';
-const setAuthToken = token => {
-  authToken = token;
-  if (token) localStorage.setItem('insightforge_token', token);
-  else localStorage.removeItem('insightforge_token');
-};
-const apiFetch = (url, options = {}) => {
-  const headers = new Headers(options.headers || {});
-  if (authToken) headers.set('Authorization', `Bearer ${authToken}`);
-  return fetch(url, {...options, headers});
-};
-$('login').onclick = async () => {
-  try {
-    const response = await fetch('/api/v1/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username: $('username').value, password: $('password').value}),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || 'Login gagal');
-    setAuthToken(data.access_token);
-    setStatus('auth-status', `Login: ${data.user.username} (${data.user.role})`, 'success');
-    await loadDatasets();
-  } catch (error) { showError('auth-status', error.message); }
-};
-$('logout').onclick = async () => {
-  if (authToken) await apiFetch('/api/v1/auth/logout', {method: 'POST'});
-  setAuthToken('');
-  setStatus('auth-status', 'Token dihapus.');
-};
-async function loadDatasets() {
-  const response = await apiFetch('/api/v1/datasets');
-  const datasets = await response.json();
-  if (!response.ok) throw new Error(datasets.detail || 'Dataset gagal dimuat');
-  const select = $('dataset'); select.replaceChildren();
-  datasets.forEach(dataset => { const option = document.createElement('option'); option.value = dataset.id; option.textContent = `${dataset.name} (${dataset.profile.rows} rows)`; select.append(option); });
+const setAuthToken = token => { authToken = token; token ? localStorage.setItem('insightforge_token', token) : localStorage.removeItem('insightforge_token'); };
+const apiFetch = (url, options = {}) => { const headers = new Headers(options.headers || {}); if (authToken) headers.set('Authorization', `Bearer ${authToken}`); return fetch(url, {...options, headers}); };
+const metric = (label, value) => { const box = document.createElement('div'); box.className = 'metric'; const name = document.createElement('span'); name.textContent = label; const strong = document.createElement('strong'); strong.textContent = value; box.append(name, strong); return box; };
+
+function renderTable(rows) {
+  const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+  if (!rows?.length) { wrap.textContent = 'No rows returned.'; wrap.classList.add('status'); return wrap; }
+  const columns = Object.keys(rows[0]); const table = document.createElement('table');
+  const head = document.createElement('thead'); const headRow = document.createElement('tr');
+  columns.forEach(column => { const cell = document.createElement('th'); cell.scope = 'col'; cell.textContent = column; headRow.append(cell); }); head.append(headRow);
+  const body = document.createElement('tbody'); rows.forEach(row => { const tableRow = document.createElement('tr'); columns.forEach(column => { const cell = document.createElement('td'); cell.textContent = formatNumber(row[column]); tableRow.append(cell); }); body.append(tableRow); });
+  table.append(head, body); wrap.append(table); return wrap;
 }
-$('upload').onclick = async () => {
-  const file = $('file').files[0]; if (!file) return showError('upload-status', 'Pilih file.');
-  const form = new FormData(); form.append('file', file); $('upload').disabled = true;
-  try { const response = await apiFetch('/api/v1/datasets', {method: 'POST', body: form}); const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || 'Upload gagal'); setStatus('upload-status', `Ready: ${data.id}`, 'success'); await loadDatasets();
-  } catch (error) { showError('upload-status', error.message); } finally { $('upload').disabled = false; }
-};
-$('analyze').onclick = async () => {
-  const payload = {dataset_id: $('dataset').value, question: $('question').value, mode: $('mode').value}; $('analyze').disabled = true;
-  try { const response = await apiFetch('/api/v1/analyses', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || 'Analysis gagal'); $('result').hidden = false; $('plan').textContent = JSON.stringify(data.plan, null, 2);
-    if (data.status === 'awaiting_approval') { const button = document.createElement('button'); button.textContent = 'Approve and run'; button.onclick = () => approve(data.id); $('analysis-status').replaceChildren(button); }
-    else await renderResult(data);
-  } catch (error) { showError('analysis-status', error.message); } finally { $('analyze').disabled = false; }
-};
-window.approve = async id => { const response = await apiFetch(`/api/v1/analyses/${id}/approve`, {method:'POST'}); const data = await response.json(); if (!response.ok) return showError('analysis-status', data.detail); await renderResult(data); };
-async function renderResult(data) {
-  setStatus('analysis-status', data.status, data.status === 'completed' ? 'success' : 'error');
-  $('answer').textContent = data.final_answer || data.error || '';
-  $('plan').textContent = JSON.stringify(data.plan, null, 2);
-  const evidence = data.result?.evidence || []; const evidenceBox = $('evidence'); evidenceBox.replaceChildren();
-  evidence.forEach(item => { const heading = document.createElement('h4'); heading.textContent = item.key; const pre = document.createElement('pre'); pre.textContent = JSON.stringify(item.rows, null, 2); evidenceBox.append(heading, pre); });
-  const trace = await (await apiFetch(`/api/v1/analyses/${data.id}/trace`)).json(); $('trace').textContent = JSON.stringify(trace, null, 2);
+
+function renderProfile(dataset) {
+  $('profile-title').textContent = dataset.name; const profile = dataset.profile; const content = $('profile-content'); content.className = ''; content.replaceChildren();
+  const metrics = document.createElement('div'); metrics.className = 'metric-grid';
+  metrics.append(metric('Rows', formatNumber(profile.rows)), metric('Columns', formatNumber(profile.column_count)), metric('Duplicates', formatNumber(profile.duplicate_count)), metric('Warnings', formatNumber(profile.warnings?.length || 0)));
+  const warnings = document.createElement('div'); warnings.className = 'warnings';
+  (profile.warnings || []).forEach(text => { const warning = document.createElement('span'); warning.className = 'warning'; warning.textContent = text; warnings.append(warning); });
+  const schema = dataset.schema.map(column => ({column: column.name, type: column.type, nullable: column.nullable ? 'yes' : 'no', missing_rate: profile.columns?.[column.name]?.missing_rate ?? 0}));
+  content.append(metrics); if (warnings.childElementCount) content.append(warnings); const schemaTitle = document.createElement('h3'); schemaTitle.textContent = 'Schema'; schemaTitle.style.margin = '18px 0 8px'; content.append(schemaTitle, renderTable(schema));
 }
-setStatus('auth-status', authToken ? 'Bearer token tersimpan.' : 'Login hanya diperlukan saat AUTH_ENABLED=true.');
-loadDatasets().catch(error => showError('analysis-status', error.message));
+
+async function loadDatasets(preferredId) {
+  const response = await apiFetch('/api/v1/datasets'); const datasets = await response.json(); if (!response.ok) throw new Error(datasets.detail || 'Dataset gagal dimuat');
+  const select = $('dataset'); select.replaceChildren(); datasets.forEach(dataset => { const option = document.createElement('option'); option.value = dataset.id; option.textContent = `${dataset.name} · ${dataset.profile.rows} rows`; select.append(option); });
+  if (preferredId) select.value = preferredId; if (select.value) await loadProfile(select.value);
+}
+async function loadProfile(id) { const response = await apiFetch(`/api/v1/datasets/${id}`); const dataset = await response.json(); if (!response.ok) throw new Error(dataset.detail || 'Profile gagal dimuat'); renderProfile(dataset); }
+$('dataset').onchange = event => loadProfile(event.target.value).catch(error => setStatus('analysis-status', error.message, 'status error'));
+
+$('login').onclick = async () => { try { const response = await fetch('/api/v1/auth/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:$('username').value, password:$('password').value})}); const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'Login gagal'); setAuthToken(data.access_token); setStatus('auth-status', `Login: ${data.user.username} (${data.user.role})`, 'status success'); await Promise.all([loadDatasets(), loadBenchmark()]); } catch (error) { setStatus('auth-status', error.message, 'status error'); } };
+$('logout').onclick = async () => { if (authToken) await apiFetch('/api/v1/auth/logout', {method:'POST'}); setAuthToken(''); setStatus('auth-status', 'Token dihapus.'); };
+
+$('upload').onclick = async () => { const file = $('file').files[0]; if (!file) return setStatus('upload-status', 'Pilih file.', 'status error'); const form = new FormData(); form.append('file', file); $('upload').disabled = true; try { const response = await apiFetch('/api/v1/datasets', {method:'POST', body:form}); const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'Upload gagal'); setStatus('upload-status', `Profile ready · ${data.profile.rows} rows`, 'status success'); await loadDatasets(data.id); } catch (error) { setStatus('upload-status', error.message, 'status error'); } finally { $('upload').disabled = false; } };
+
+$('analyze').onclick = async () => { const payload = {dataset_id:$('dataset').value, question:$('question').value, mode:$('mode').value}; if (!payload.dataset_id) return setStatus('analysis-status', 'Upload atau pilih dataset.', 'status error'); $('analyze').disabled = true; try { const response = await apiFetch('/api/v1/analyses', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'Analysis gagal'); $('plan-panel').hidden = false; $('plan').textContent = JSON.stringify(data.plan, null, 2); if (data.status === 'awaiting_approval') { const button = document.createElement('button'); button.className = 'button small'; button.textContent = 'Approve & execute'; button.onclick = () => approve(data.id); $('analysis-status').className = 'status'; $('analysis-status').replaceChildren(button); } else await renderResult(data); } catch (error) { setStatus('analysis-status', error.message, 'status error'); } finally { $('analyze').disabled = false; } };
+async function approve(id) { const response = await apiFetch(`/api/v1/analyses/${id}/approve`, {method:'POST'}); const data = await response.json(); if (!response.ok) return setStatus('analysis-status', data.detail, 'status error'); await renderResult(data); }
+
+function renderChart(spec) {
+  const box = $('chart'); box.replaceChildren(); if (!spec?.points?.length) { const empty = document.createElement('div'); empty.className = 'chart-empty'; empty.textContent = 'No chart for single-value result.'; box.append(empty); return; }
+  const width = 620, height = 300, left = 48, right = 18, top = 24, bottom = 62, plotWidth = width - left - right, plotHeight = height - top - bottom;
+  const values = spec.points.map(point => Number(point.y || 0)); const domainMin = Math.min(0, ...values); const domainMax = Math.max(0, ...values); const span = domainMax - domainMin || 1; const y = value => top + (domainMax - value) / span * plotHeight; const zeroY = y(0); const slot = plotWidth / spec.points.length; const barWidth = Math.max(16, slot * .58);
+  const ns = 'http://www.w3.org/2000/svg'; const svg = document.createElementNS(ns, 'svg'); svg.setAttribute('viewBox', `0 0 ${width} ${height}`); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', spec.alt_text || 'Evidence chart');
+  const axis = document.createElementNS(ns, 'line'); axis.setAttribute('x1', left); axis.setAttribute('x2', width-right); axis.setAttribute('y1', zeroY); axis.setAttribute('y2', zeroY); axis.setAttribute('stroke', '#35554f'); svg.append(axis);
+  spec.points.forEach((point, index) => { const value = Number(point.y || 0); const center = left + slot * index + slot / 2; const valueY = y(value); const rect = document.createElementNS(ns, 'rect'); rect.setAttribute('x', center - barWidth / 2); rect.setAttribute('y', Math.min(valueY, zeroY)); rect.setAttribute('width', barWidth); rect.setAttribute('height', Math.max(2, Math.abs(zeroY - valueY))); rect.setAttribute('rx', 6); rect.setAttribute('fill', value < 0 ? '#f4c96b' : '#70e1b7'); svg.append(rect);
+    const valueLabel = document.createElementNS(ns, 'text'); valueLabel.setAttribute('x', center); valueLabel.setAttribute('y', value < 0 ? Math.min(height-bottom+20, valueY+18) : Math.max(14, valueY-8)); valueLabel.setAttribute('text-anchor', 'middle'); valueLabel.setAttribute('fill', '#dcebe7'); valueLabel.setAttribute('font-size', '11'); valueLabel.textContent = formatNumber(value); svg.append(valueLabel);
+    const label = document.createElementNS(ns, 'text'); label.setAttribute('x', center); label.setAttribute('y', height-25); label.setAttribute('text-anchor', 'middle'); label.setAttribute('fill', '#91aaa5'); label.setAttribute('font-size', '11'); label.textContent = String(point.x ?? '').slice(0, 12); svg.append(label); });
+  box.append(svg);
+}
+
+function renderEvidence(evidence) { const box = $('evidence'); box.replaceChildren(); evidence.forEach(item => { const card = document.createElement('article'); card.className = 'evidence-card'; const title = document.createElement('div'); title.className = 'card-title'; const copy = document.createElement('div'); const strong = document.createElement('strong'); strong.textContent = item.purpose; const detail = document.createElement('p'); detail.textContent = `${item.row_count} rows · ${item.source} · ${item.truncated ? 'truncated' : 'complete'}`; copy.append(strong, detail); const key = document.createElement('span'); key.className = 'key'; key.textContent = item.key; title.append(copy, key); const sql = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Executed SQL'; const pre = document.createElement('pre'); pre.textContent = item.sql; sql.append(summary, pre); card.append(title, sql, renderTable(item.rows)); box.append(card); }); }
+function renderTrace(trace) { const box = $('trace'); box.replaceChildren(); (trace.steps || []).forEach(step => { const card = document.createElement('article'); card.className = 'trace-step'; const title = document.createElement('div'); title.className = 'card-title'; const strong = document.createElement('strong'); strong.textContent = `${step.sequence}. ${step.agent_name}`; const key = document.createElement('span'); key.className = 'key'; key.textContent = step.status; title.append(strong, key); const meta = document.createElement('div'); meta.className = 'trace-meta'; meta.textContent = `${step.latency_ms} ms${step.code ? ' · code captured' : ''}`; card.append(title, meta); box.append(card); }); }
+async function renderResult(data) { setStatus('analysis-status', data.status, data.status === 'completed' ? 'status success' : 'status error'); $('download-report').href = `/api/v1/analyses/${data.id}/report`; $('download-report').hidden = data.status !== 'completed';$('result').hidden = false; $('evidence-panel').hidden = false; $('trace-panel').hidden = false; $('result-status').textContent = data.status; $('result-status').className = `badge ${data.status === 'completed' ? 'live' : ''}`; $('answer').textContent = data.final_answer || data.error || ''; $('plan').textContent = JSON.stringify(data.plan, null, 2); const evidence = data.result?.evidence || []; renderEvidence(evidence); renderChart(data.result?.visualization); const traceResponse = await apiFetch(`/api/v1/analyses/${data.id}/trace`); const trace = await traceResponse.json(); renderTrace(trace); const coverage = trace.evaluations?.find(item => item.evaluator === 'evidence_coverage')?.score ?? 0; const latency = (trace.steps || []).reduce((total, step) => total + step.latency_ms, 0); const metrics = $('result-metrics'); metrics.replaceChildren(metric('Evidence', evidence.length), metric('Coverage', formatPercent(coverage)), metric('Trace steps', trace.steps?.length || 0), metric('Agent latency', `${latency} ms`)); }
+
+function renderBenchmark(report) { const box = $('benchmark'); box.className = ''; box.replaceChildren(); const grid = document.createElement('div'); grid.className = 'benchmark-grid'; grid.append(metric('Passed', `${report.passed}/${report.total}`), metric('Accuracy', formatPercent(report.score)), metric('SQL validity', formatPercent(report.metrics.read_only_sql_validity.rate)), metric('Reproducible', formatPercent(report.metrics.reproducibility.rate))); const note = document.createElement('div'); note.className = 'status success'; note.textContent = `Median ${formatNumber(report.metrics.median_latency_ms)} ms · ${Object.keys(report.categories).length} categories`; box.append(grid, note); }
+async function loadBenchmark() { const response = await apiFetch('/api/v1/benchmarks/latest'); if (response.status === 404) return setStatus('benchmark', 'Run benchmark to generate report.'); const report = await response.json(); if (!response.ok) throw new Error(report.detail || 'Benchmark gagal dimuat'); renderBenchmark(report); }
+$('run-benchmark').onclick = async () => { $('run-benchmark').disabled = true; setStatus('benchmark', 'Running 30 cases…'); try { const response = await apiFetch('/api/v1/benchmarks/run', {method:'POST'}); const report = await response.json(); if (!response.ok) throw new Error(report.detail || 'Benchmark gagal'); renderBenchmark(report); } catch (error) { setStatus('benchmark', error.message, 'status error'); } finally { $('run-benchmark').disabled = false; } };
+
+setStatus('auth-status', authToken ? 'Bearer token tersimpan.' : 'Auth disabled by default; local session uses admin role.');
+Promise.all([loadDatasets(), loadBenchmark()]).catch(error => setStatus('analysis-status', error.message, 'status error'));
 </script>
 </body>
 </html>
-

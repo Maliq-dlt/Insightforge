@@ -27,4 +27,4 @@ Analysis status values:
 - Planner intents remain bounded and deterministic by default; the OpenAI adapter is opt-in.
 - SQLite remains the default trace store for a portable portfolio deployment.
 - Python execution is isolated with Docker, but Compose intentionally does not expose the host Docker socket to the API.
-- Chart artifacts remain JSON until a frontend rendering layer is required.
+- Chart artifacts include JSON data and rendered SVG output; standalone HTML report export is available, while PDF export remains future work.

@@ -162,7 +162,7 @@ class PlanBuilder:
                 visualization={"type": "bar", "x": breakdown or "month", "y": "delta"},
             )
 
-        if _contains(lowered, ("top", "tertinggi", "teratas", "paling besar")) and dimension and metric:
+        if _contains(lowered, ("top", "tertinggi", "teratas", "paling besar", "paling tinggi")) and dimension and metric:
             query = (
                 f"SELECT {quote_identifier(dimension)} AS segment, "
                 f"SUM({quote_identifier(metric)}) AS metric_value "

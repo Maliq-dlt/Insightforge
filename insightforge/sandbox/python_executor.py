@@ -28,12 +28,46 @@ _FORBIDDEN_CALLS = {
     "eval",
     "exec",
     "exit",
+    "getattr",
+    "globals",
     "help",
     "input",
+    "locals",
     "open",
     "quit",
+    "setattr",
+    "delattr",
+    "vars",
     "__import__",
 }
+_FORBIDDEN_NAMES = {"__builtins__", "__loader__", "__spec__"}
+_DATASET_READERS = {"read_csv", "read_parquet"}
+_FORBIDDEN_ATTRIBUTES = {
+    "environ",
+    "getenv",
+    "genfromtxt",
+    "listdir",
+    "load",
+    "loadtxt",
+    "popen",
+    "read_feather",
+    "read_html",
+    "read_json",
+    "read_orc",
+    "read_pickle",
+    "read_sql",
+    "save",
+    "savetxt",
+    "scandir",
+    "system",
+    "to_csv",
+    "to_parquet",
+    "to_pickle",
+    "to_sql",
+    "urlopen",
+    "walk",
+}
+
 _FORBIDDEN_ROOTS = {
     "builtins",
     "ctypes",
@@ -68,19 +102,30 @@ def validate_python(code: str) -> None:
             module_root = (node.module or "").split(".", 1)[0]
             if module_root not in _ALLOWED_IMPORTS:
                 raise PythonPolicyError(f"Import tidak diizinkan: {node.module}")
+        elif isinstance(node, ast.Name) and node.id in _FORBIDDEN_NAMES:
+            raise PythonPolicyError(f"Name tidak diizinkan: {node.id}")
+        elif isinstance(node, ast.Attribute):
+            _validate_attribute(node)
         elif isinstance(node, ast.Call):
             if isinstance(node.func, ast.Name) and node.func.id in _FORBIDDEN_CALLS:
                 raise PythonPolicyError(f"Call tidak diizinkan: {node.func.id}")
-            if isinstance(node.func, ast.Attribute):
-                if node.func.attr.startswith("_"):
-                    raise PythonPolicyError("Akses private/dunder tidak diizinkan.")
-                attribute_root: ast.AST = node.func.value
-                while isinstance(attribute_root, ast.Attribute):
-                    attribute_root = attribute_root.value
-                if isinstance(attribute_root, ast.Name) and attribute_root.id in _FORBIDDEN_ROOTS:
-                    raise PythonPolicyError(f"Module access tidak diizinkan: {attribute_root.id}")
+            if isinstance(node.func, ast.Attribute) and node.func.attr in _DATASET_READERS:
+                if not node.args or not isinstance(node.args[0], ast.Name) or node.args[0].id != "DATASET_PATH":
+                    raise PythonPolicyError("Dataset reader hanya boleh membaca DATASET_PATH.")
         elif isinstance(node, (ast.Global, ast.Nonlocal)):
             raise PythonPolicyError("Global dan nonlocal tidak diizinkan.")
+
+
+def _validate_attribute(node: ast.Attribute) -> None:
+    if node.attr.startswith("_"):
+        raise PythonPolicyError("Akses private/dunder tidak diizinkan.")
+    if node.attr in _FORBIDDEN_ATTRIBUTES:
+        raise PythonPolicyError(f"Attribute tidak diizinkan: {node.attr}")
+    attribute_root: ast.AST = node.value
+    while isinstance(attribute_root, ast.Attribute):
+        attribute_root = attribute_root.value
+    if isinstance(attribute_root, ast.Name) and attribute_root.id in _FORBIDDEN_ROOTS:
+        raise PythonPolicyError(f"Module access tidak diizinkan: {attribute_root.id}")
 
 
 class DockerPythonSandbox:

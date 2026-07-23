@@ -19,4 +19,11 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: ruff check .
       - run: mypy insightforge apps
-      - run: pytest
+      - run: coverage run -m pytest
+      - run: coverage report
+      - run: coverage xml
+      - uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12'
+        with:
+          name: coverage-python-3.12
+          path: .runtime/coverage/coverage.xml

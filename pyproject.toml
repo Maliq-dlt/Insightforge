@@ -5,8 +5,10 @@ build-backend = "hatchling.build"
 [project]
 name = "insightforge"
 version = "0.2.0"
-description = "Auditable, evidence-backed data analysis service"
+description = "Auditable data scientist agent for reproducible, evidence-backed CSV and Parquet analysis"
 readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["data-science-agent", "langgraph", "duckdb", "auditable-ai"]
 requires-python = ">=3.11"
 dependencies = [
   "duckdb>=1.2,<2",
@@ -24,6 +26,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  "coverage[toml]>=7.6,<8",
   "httpx>=0.28,<1",
   "mypy>=1.15,<2",
   "pytest>=8.3,<9",
@@ -53,5 +56,18 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 cache_dir = ".runtime/cache/mypy"
 packages = ["insightforge", "apps"]
+[tool.coverage.run]
+branch = true
+source = ["apps", "insightforge"]
+data_file = ".runtime/coverage/.coverage"
 
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 75
 
+[tool.coverage.html]
+directory = ".runtime/coverage/html"
+
+[tool.coverage.xml]
+output = ".runtime/coverage/coverage.xml"

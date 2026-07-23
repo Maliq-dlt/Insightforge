@@ -1,20 +1,20 @@
 [
   {
     "id": "retail_total_revenue",
-    "dataset": "retail_small.csv",
+    "dataset": "portfolio_retail.csv",
     "question": "Berapa total revenue?",
-    "expected": {"value": 700.0, "tolerance": 0.000001},
-    "field": "metric_value",
-    "category": "basic_aggregation",
+    "selector": {"evidence_key": "aggregate", "row": 0, "field": "metric_value"},
+    "expected": {"value": 2970.0, "tolerance": 0.000001},
+    "category": "aggregation",
     "difficulty": "easy"
   },
   {
     "id": "retail_top_category",
-    "dataset": "retail_small.csv",
+    "dataset": "portfolio_retail.csv",
     "question": "Kategori mana paling tinggi berdasarkan revenue?",
-    "expected": {"value": 450.0, "tolerance": 0.000001},
-    "field": "metric_value",
-    "category": "filtering_segmentation",
+    "selector": {"evidence_key": "top_segments", "row": 0, "field": "segment"},
+    "expected": {"value": "Electronics"},
+    "category": "segmentation",
     "difficulty": "easy"
   }
 ]

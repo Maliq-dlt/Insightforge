@@ -23,6 +23,7 @@ from insightforge.ingestion.validators import DatasetValidationError, safe_filen
 from insightforge.models.llm import build_planner
 from insightforge.observability.mlflow_tracker import MLflowTracker
 from insightforge.profiling.profiler import DatasetProfiler
+from insightforge.reporting import export_html_report
 from insightforge.sandbox.executor import SQLExecutor
 from insightforge.sandbox.python_executor import DockerPythonSandbox, PythonExecutionService
 from insightforge.security.auth import (
@@ -102,7 +103,11 @@ def _services(settings: Settings) -> Services:
         datasets=datasets,
         workflow=workflow,
         benchmarks=BenchmarkRunner(
-            settings.benchmark_dir, datasets, workflow, settings.benchmark_report_dir
+            settings.benchmark_dir,
+            datasets,
+            workflow,
+            settings.benchmark_report_dir,
+            statistics,
         ),
         auth=auth,
         statistics=statistics,
@@ -287,6 +292,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail="Analysis tidak ditemukan.")
         return _public(trace)
 
+    @app.get("/api/v1/analyses/{analysis_id}/report")
+    async def download_report(analysis_id: str, request: Request) -> FileResponse:
+        _authorize(request, "read")
+        services = get_services(request)
+        trace = services.store.trace(analysis_id)
+        if trace is None:
+            raise HTTPException(status_code=404, detail="Analysis tidak ditemukan.")
+        output = services.settings.artifact_dir / "reports" / f"{analysis_id}.html"
+        export_html_report(trace, output)
+        return FileResponse(
+            output,
+            media_type="text/html; charset=utf-8",
+            filename=f"insightforge-{analysis_id}.html",
+        )
     @app.post("/api/v1/analyses/{analysis_id}/python")
     async def execute_python(
         analysis_id: str, payload: PythonExecutionRequest, request: Request
@@ -323,6 +342,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return _public(get_services(request).benchmarks.run())
         except Exception as error:
             raise HTTPException(status_code=422, detail=f"Benchmark gagal: {error}") from error
+
+    @app.get("/api/v1/benchmarks/latest")
+    async def latest_benchmark(request: Request) -> dict[str, Any]:
+        _authorize(request, "read")
+        report = get_services(request).benchmarks.latest()
+        if report is None:
+            raise HTTPException(status_code=404, detail="Laporan benchmark belum tersedia.")
+        return _public(report)
 
     return app
 

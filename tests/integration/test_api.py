@@ -52,7 +52,12 @@ class APIIntegrationTest(unittest.TestCase):
             trace = client.get(f"/api/v1/analyses/{created.json()['id']}/trace")
             self.assertEqual(trace.status_code, 200)
             self.assertGreaterEqual(len(trace.json()["steps"]), 4)
-
+            report = client.get(f"/api/v1/analyses/{created.json()['id']}/report")
+            self.assertEqual(report.status_code, 200, report.text)
+            self.assertIn("text/html", report.headers["content-type"])
+            self.assertIn("attachment", report.headers["content-disposition"])
+            self.assertIn("Evidence and SQL", report.text)
+            self.assertIn("SELECT", report.text)
 
 if __name__ == "__main__":
     unittest.main()
